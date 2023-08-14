@@ -15,12 +15,12 @@ Datasets downloaded from 10x Genomics Resources:
 | 5k Mouse E18 Combined Cortex, Hippocampus and Subventricular Zone Cells	| https://www.10xgenomics.com/resources/datasets/5-k-mouse-e-18-combined-cortex-hippocampus-and-subventricular-zone-cells-3-1-standard-6-0-0 |
 | 5k Adult Mouse Brain Nuclei Isolated with Chromium Nuclei Isolation Kit	| https://www.10xgenomics.com/resources/datasets/5k-adult-mouse-brain-nuclei-isolated-with-chromium-nuclei-isolation-kit-3-1-standard |
 
-STAR aligner was used to create a genome index with ENCODE’s latest basic primary assembly fasta sequence and basic primary genome annotation of the common mouse and map the reads with very few parameters. The alignment process is important to procure a BAM file, and with samtools, create a BAI file (bam file index). 
+[Star Aligner](https://github.com/alexdobin/STAR) was used to create a genome index with ENCODE’s latest basic primary assembly fasta sequence and basic primary genome annotation of the common mouse and map the reads with very few parameters. The alignment process is important to procure a BAM file, and with samtools, create a BAI file (bam file index). 
 I used [genome_index.sh](genome_index.sh) for the genome index and [mapping.sh](mapping.sh) for the quantification of the reads. 
 ### **Filtering**
 1. Reads
    
-The reads were filtered by flag to determine which strand of the genome annotation they correspond to. The information we have from the read is limited to the chromosome, the strand, the cigar string, the start and end of the read, and the sequence. For now, we are choosing to ignore the sequence as it is not relevant right now. This is what the first few rows of the dataset would look like after it was filtered:
+The reads were filtered by flag to determine which strand of the genome annotation they correspond to. The information we have from the read is limited to the chromosome, the strand, the cigar string, the start and end of the read, and the sequence. But, we are choosing to ignore the sequence as it is not relevant right now. This is what the first few rows of the dataset would look like after it was filtered:
 
 | chromosome	| start | end	| reads	| length of read | cigar string |
 | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- |
@@ -101,7 +101,7 @@ between_exons = same_exon_number[(same_exon_number['end'] < read_start) & (same_
           status.append("I")
 ```
    
-3. Untranslated regions (UTRs): When a read is not found within a gene but it is relatively close to the gene start (5'UTR) or to the gene end (3'UTR). For this project, the cuttoff point for the 5'UTR is 1000 bases long and the 3'UTR should be 3.6 times larger than the 5'UTR. However, I didn't specify the 3'UTR to have a cuttoff point because it is much less annotated than the 5'UTR.
+3. Untranslated regions (UTRs): When a read is not found within a gene but it is relatively close to the gene start (5'UTR) or to the gene end (3'UTR). For this project, the cuttoff point for the 5'UTR is 1000 bases long and the 3'UTR should be 3.6 times larger than the 5'UTR. However, I didn't specify the 3'UTR to have a cuttoff point because it is much less annotated than the 5'UTR (He, Soneson & Patro, 2023).
    
 <p align="center">
   <img src="utr.jpg" alt="Image Alt Text" width="400">
@@ -186,6 +186,18 @@ unspliced = between_exons[(between_exons['next exon start'] < read_end) & (betwe
 
 ### Results
 
-
+<p align="center">
+  <img src="pie_chart1.jpg" alt="Image Alt Text" width="500">    <img src="pie_chart2.jpg" alt="Image Alt Text" width="500">
+</p>
 
 ### Future work
+Optimization of code: Right now, the code only works in chunks. I hope to optimize it to work at a greater scale. I also hope to better the UTR categories since they're not being handled properly by gene. A gene's 5'UTR can be from 10 to 1000 bases long depending on the gene and a 3'UTR can be 3.6 times that amount for mouse. For humans, it can be up to 4 times.
+
+Further categorization: With the length of the reads and their provided information, we can calculate the distance to the nearest polyAsite or polyAtail depending on where the read is located in the genome and the type of ambiguity it posseses. We hope to give a probability as to whether the read is more likely to be spliced or unspliced.
+
+### Works Cited
+Cheng, C., Bhardwaj, N., & Gerstein, M. (2009). The relationship between the evolution of microRNA targets and the length of their UTRs. BMC genomics, 10(1), 1-6.
+He, D., Soneson, C., & Patro, R. (2023). Understanding and evaluating ambiguity in single-cell and single-nucleus RNA-sequencing. bioRxiv, 2023-01.
+Pool, A. H., Poldsam, H., Chen, S., Thomson, M., & Oka, Y. (2022). Enhanced recovery of single-cell RNA-sequencing reads for missing gene expression data. BioRxiv, 2022-04.
+Robert, C., & Watson, M. (2015). Errors in RNA-Seq quantification affect genes of relevance to human disease. Genome biology, 16, 1-16.
+
