@@ -17,7 +17,7 @@ Datasets downloaded from 10x Genomics Resources:
 
 STAR aligner was used to create a genome index with ENCODE’s latest basic primary assembly fasta sequence and basic primary genome annotation of the common mouse and map the reads with very few parameters. The alignment process is important to procure a BAM file, and with samtools, create a BAI file (bam file index). 
 I used [genome_index.sh](genome_index.sh) for the genome index and [mapping.sh](mapping.sh) for the quantification of the reads. 
-#### **Filtering**
+### **Filtering**
 1. Reads
    
 The reads were filtered by flag to determine which strand of the genome annotation they correspond to. The information we have from the read is limited to the chromosome, the strand, the cigar string, the start and end of the read, and the sequence. For now, we are choosing to ignore the sequence as it is not relevant right now. This is what the first few rows of the dataset would look like after it was filtered:
@@ -43,11 +43,23 @@ This is what the first few rows of the exons dataset would look like:
 | 537278	| GL456211.1	| exon	| ENSMUSG00000079190.4	| 1	| ENSMUST00000111360	| 167445	| 167988	| +	| 543	| 2	| ENSMUST00000111360	| 175871	| 176034	| 7	| 167445	| 196478	| 0	| 0 |
 | 537279	| GL456211.1	| exon	| ENSMUSG00000079190.4	| 2	| ENSMUST00000111360	| 175871	| 176034	| +	| 163	| 3	| ENSMUST00000111360	| 176916	| 177088	| 7	| 167445	| 196478	| 0	| 0 |
 
- 
-We have the next exon information for every exon on the genome annotation. It is sorted by chromosome, gene_id, transcript and exon number (in that same order) to accurately have the next exon information on the next columns. 
-The genes dataframe would only have the columns; ‘chromosome’, ‘feature’, ‘gene_id’ and ‘strand’.
+We have the next exon information for every exon on the genome annotation. It is sorted by chromosome, gene_id, transcript and exon number (in that same order) to accurately have the next exon information on the next columns. The genes dataframe would only have the columns; ‘chromosome’, ‘feature’, ‘gene_id’ and ‘strand’.
 
+#### **Within genes**
+Interestingly, not all of the reads fall within a gene. Most of the reads are either very close to the start or end of a specific gene. That’s why I decided to assign gene id’s to the reads before assigning them a splicing category. If a read was found within a gene, it would output the name of the gene id to another column; if not, it would return nothing. 
+| chromosome	| start | end	| reads	| length of read | cigar string | gene_id |
+| ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- |
+| chr1 | 10865506	| 10865519 | 1	| 13 | 15S13M | |
+| chr1 | 10866393	| 10866408 | 2	| 15 | 15M13S | |
+| chr1 | 10870565	| 10870581 | 1	| 16 | 12S16M | |
+| chr1 | 10870868	| 10870884 | 1	| 16 | 16M12S | |
+| chr1 | 10876012	| 10876025 | 1	| 13 | 15S13M | ENSMUSG00000100212.2 |
+| chr1 | 10881326 | 10881340 | 2	| 14 | 14S14M | |
 
+### Categorization of the reads
+
+#### **Within exons**
+This is where it got tricky. Genes can have multiple transcripts with different splicing locations and different amounts of 
 
 ### Results
 
