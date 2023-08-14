@@ -16,7 +16,7 @@ Datasets downloaded from 10x Genomics Resources:
 | 5k Adult Mouse Brain Nuclei Isolated with Chromium Nuclei Isolation Kit	| https://www.10xgenomics.com/resources/datasets/5k-adult-mouse-brain-nuclei-isolated-with-chromium-nuclei-isolation-kit-3-1-standard |
 
 [Star Aligner](https://github.com/alexdobin/STAR) was used to create a genome index with ENCODE’s latest basic primary assembly fasta sequence and basic primary genome annotation of the common mouse and map the reads with very few parameters. The alignment process is important to procure a BAM file, and with samtools, create a BAI file (bam file index). 
-I used [genome_index.sh](genome_index.sh) for the genome index and [mapping.sh](mapping.sh) for the quantification of the reads. 
+I used [genome_index.sh](STAR/genome_index.sh) for the genome index and [mapping.sh](STAR/mapping.sh) for the quantification of the reads. 
 ### **Filtering**
 1. Reads
 
