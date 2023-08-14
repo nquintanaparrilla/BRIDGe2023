@@ -19,7 +19,9 @@ Datasets downloaded from 10x Genomics Resources:
 I used [genome_index.sh](genome_index.sh) for the genome index and [mapping.sh](mapping.sh) for the quantification of the reads. 
 ### **Filtering**
 1. Reads
-   
+
+code: [filter_reads.py](scripts/filter_reads.py)
+
 The reads were filtered by flag to determine which strand of the genome annotation they correspond to. The information we have from the read is limited to the chromosome, the strand, the cigar string, the start and end of the read, and the sequence. But, we are choosing to ignore the sequence as it is not relevant right now. This is what the first few rows of the dataset would look like after it was filtered:
 
 | chromosome	| start | end	| reads	| length of read | cigar string |
@@ -30,6 +32,8 @@ The reads were filtered by flag to determine which strand of the genome annotati
 | chr1	| 3064598	| 3064610	| 2	| 12	| 16S12M
 
 2. Genes and exons
+
+code: [filter gtf](scripts/filter_gtf.py)
 
 The genes and exons were filtered by strand orientation and divided into forward and reverse genes and exons. 
 This is what the first few rows of the exons dataset would look like:
@@ -46,7 +50,7 @@ This is what the first few rows of the exons dataset would look like:
 We have the next exon information for every exon on the genome annotation. It is sorted by chromosome, gene_id, transcript and exon number (in that same order) to accurately have the next exon information on the next columns. The genes dataframe would only have the columns; ‘chromosome’, ‘feature’, ‘gene_id’ and ‘strand’.
 
 #### **Within genes**
-code: [within_genes.py](within_genes.py)
+code: [within_genes.py](scripts/within_genes.py)
 
 Interestingly, not all of the reads fall within a gene. Most of the reads are either very close to the start or end of a specific gene. That’s why I decided to assign gene id’s to the reads before assigning them a splicing category. If a read was found within a gene, it would output the name of the gene id to another column; if not, it would return nothing. 
 | chromosome	| start | end	| reads	| length of read | cigar string | gene_id |
@@ -60,7 +64,7 @@ Interestingly, not all of the reads fall within a gene. Most of the reads are ei
 
 ### Categorization of the reads
 #### **Within exons**
-code: [within_exons.py](within_exons.py)
+code: [within_exons.py](scripts/within_exons.py)
 
 This is where it got tricky. Genes can have multiple transcripts with different splicing locations and different amounts of exons. These categories were the most generalized for all of the cases:
 
