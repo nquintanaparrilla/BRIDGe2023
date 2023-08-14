@@ -47,6 +47,7 @@ We have the next exon information for every exon on the genome annotation. It is
 
 #### **Within genes**
 code: [within_genes.py](within_genes.py)
+
 Interestingly, not all of the reads fall within a gene. Most of the reads are either very close to the start or end of a specific gene. That’s why I decided to assign gene id’s to the reads before assigning them a splicing category. If a read was found within a gene, it would output the name of the gene id to another column; if not, it would return nothing. 
 | chromosome	| start | end	| reads	| length of read | cigar string | gene_id |
 | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- |
@@ -60,6 +61,7 @@ Interestingly, not all of the reads fall within a gene. Most of the reads are ei
 ### Categorization of the reads
 #### **Within exons**
 code: [within_exons.py](within_exons.py)
+
 This is where it got tricky. Genes can have multiple transcripts with different splicing locations and different amounts of exons. These categories were the most generalized for all of the cases:
 
 1. Ambiguous within an exon: When the read is entirely within an exon, it is ambiguous because we do not know whether the read came from a spliced or an unspliced RNA molecule.
@@ -197,7 +199,10 @@ Further categorization: With the length of the reads and their provided informat
 
 ### Works Cited
 Cheng, C., Bhardwaj, N., & Gerstein, M. (2009). The relationship between the evolution of microRNA targets and the length of their UTRs. BMC genomics, 10(1), 1-6.
+
 He, D., Soneson, C., & Patro, R. (2023). Understanding and evaluating ambiguity in single-cell and single-nucleus RNA-sequencing. bioRxiv, 2023-01.
+
 Pool, A. H., Poldsam, H., Chen, S., Thomson, M., & Oka, Y. (2022). Enhanced recovery of single-cell RNA-sequencing reads for missing gene expression data. BioRxiv, 2022-04.
+
 Robert, C., & Watson, M. (2015). Errors in RNA-Seq quantification affect genes of relevance to human disease. Genome biology, 16, 1-16.
 
