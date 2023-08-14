@@ -2,7 +2,7 @@ import pyranges as pr
 import pandas as pd
 from pathlib import Path
 
-#FILTER GENES
+#FILTER GENES 
 gtf = pr.read_gtf("/path/ref/mouse_pri_assembly_annotation.gtf", as_df=True)
 gene_df = gtf[gtf["Feature"] == 'gene']
 gene_df = gene_df[["Chromosome", "Feature", "Source", "gene_id", "Start", "End", "Strand"]]
