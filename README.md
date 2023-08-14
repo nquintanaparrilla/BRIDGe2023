@@ -62,9 +62,45 @@ This is where it got tricky. Genes can have multiple transcripts with different 
 
 1. Ambiguous within an exon: When the read is entirely within an exon, it is ambiguous because we do not know whether the read came from a spliced or an unspliced RNA molecule.
    
-| Read visualization | code |
-| ----------- | ----------- |
-| ![ambiguous](ambiguous.jpg) | | 
+<p align="center">
+  <img src="ambiguous.jpg" alt="Image Alt Text" width="400">
+</p>
+
+Code snippet:
+
+```python
+ambiguous = same_gene[(same_gene['start'] <= read_start) & (same_gene['end'] >= read_end)]
+   if not ambiguous.empty:
+       #for i in range(len(ambiguous)):            
+       amb_exon_name = ambiguous.iloc[0]['transcript']
+       amb_exon_number = ambiguous.iloc[0]['exon number']
+       ambiguous_result.append([amb_exon_name, amb_exon_number])
+       status.clear()
+       status.append('A') 
+```
+2. Intronic: When a read is entirely between exons.
+<p align="center">
+  <img src="intronic.jpg" alt="Image Alt Text" width="400">
+</p>
+   
+Code snippet:
+   
+```python
+between_exons = same_exon_number[(same_exon_number['end'] < read_start) & (same_exon_number['next exon start'] > read_start)]
+  if not between_exons.empty:
+      #for i in range(len(intronic)):
+      intronic = between_exons[(between_exons['next exon start'] > read_end)]
+      if not intronic.empty:
+          intr_exon_1 = intronic.iloc[0]['transcript']
+          intr_exon_2 = intronic.iloc[0]['next transcript']
+          intr_exon_number1 = intronic.iloc[0]['exon number']
+          intr_exon_number2 = intronic.iloc[0]['next exon number']
+          intronic_result.append([[intr_exon_1, intr_exon_2], [intr_exon_number1, intr_exon_number2]])
+          status.append("I")
+```
+   
+3. 
+
 
 ### Results
 
