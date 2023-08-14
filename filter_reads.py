@@ -52,7 +52,7 @@ def main(bamfile_path):
     return df
 
 if __name__ == "__main__":
-    bamfile_path = "/path/mhcL1_Aligned.sortedByCoord.out.bam"
+    bamfile_path = "/path/mbcL1_Aligned.sortedByCoord.out.bam"
     df = main(bamfile_path)
 
 df['reads'] = df.groupby(['reference', 'start', 'end', 'strand'])['reference'].transform('size')
@@ -61,13 +61,13 @@ filepath = Path("/path/sc_mh_reads.csv")
 filepath.parent.mkdir(parents=True, exist_ok=True)
 df.to_csv(filepath, index=False)
 
-df = pd.read_csv("/path/sc_mh_reads.csv")
+df = pd.read_csv("/path/sc_mb_reads.csv")
 
 reverse_df = df[df['strand'] == '+']
 forward_df = df[df['strand'] == '-']
 
-forward_csv_filename = '/path/sc_mh_reads.csv'
-reverse_csv_filename = '/path/barcodes_sc_mh_reads.csv'
+forward_csv_filename = '/path/sc_mb_reads.csv'
+reverse_csv_filename = '/path/barcodes_sc_mb_reads.csv'
 
 reverse_df.to_csv(forward_csv_filename, index=False)
 forward_df.to_csv(reverse_csv_filename, index=False)
