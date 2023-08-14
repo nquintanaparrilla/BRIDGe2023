@@ -1,11 +1,11 @@
 import pandas as pd
 import os
-def categorize_intervals(chrom, read_start, read_end, gene_id,forward_exons_df):
+def categorize_intervals(chrom, read_start, read_end, gene_id, cigar, reads, length_of_read,forward_exons_df):
 
-    ambiguous_result = []
-    intronic_result = []
-    unspliced_result = []
-    spliced_result = []
+    amb_result = []
+    intr_result = []
+    uns_result = []
+    spl_result = []
     utr_3_result = []
     utr_5_result = []
     status = []
@@ -28,7 +28,7 @@ def categorize_intervals(chrom, read_start, read_end, gene_id,forward_exons_df):
                             intr_exon_2 = intronic.iloc[0]['next transcript']
                             intr_exon_number1 = intronic.iloc[0]['exon number']
                             intr_exon_number2 = intronic.iloc[0]['next exon number']
-                            intronic_result.append([[intr_exon_1, intr_exon_2], [intr_exon_number1, intr_exon_number2]])
+                            intr_result.append([[intr_exon_1, intr_exon_2], [intr_exon_number1, intr_exon_number2]])
                             status.append("I")
                         unspliced = between_exons[(between_exons['next exon start'] < read_end) & (between_exons['next exon end'] > read_end)]
                         if not unspliced.empty:
@@ -37,7 +37,7 @@ def categorize_intervals(chrom, read_start, read_end, gene_id,forward_exons_df):
                             uns_exon_2 = unspliced.iloc[0]['next transcript']
                             uns_exon_number1 = unspliced.iloc[0]['exon number']
                             uns_exon_number2 = unspliced.iloc[0]['next exon number']
-                            unspliced_result.append([[uns_exon_1, uns_exon_2], [uns_exon_number1, uns_exon_number2]])
+                            uns_result.append([[uns_exon_1, uns_exon_2], [uns_exon_number1, uns_exon_number2]])
                             status.append("U")
                             if 'N' in cigar:
                                 status.append('S')
@@ -49,7 +49,7 @@ def categorize_intervals(chrom, read_start, read_end, gene_id,forward_exons_df):
                         spl_2 = spliced.iloc[0]['next transcript']
                         spl_number_1 = spliced.iloc[0]['exon number']
                         spl_number_2 = spliced.iloc[0]['next exon number']
-                        spliced_result.append([[spl_1, spl_2], [spl_number_1, spl_number_2]])
+                        spl_result.append([[spl_1, spl_2], [spl_number_1, spl_number_2]])
                         status.append("S")
                                 
                     unspliced = same_exon_number[(same_exon_number['end'] >= read_start) & (same_exon_number['start'] <= read_start) & (same_exon_number['next exon start'] > read_end) & (same_exon_number['end'] < read_end)]
@@ -59,7 +59,7 @@ def categorize_intervals(chrom, read_start, read_end, gene_id,forward_exons_df):
                         uns_exon_2 = unspliced.iloc[0]['next transcript']
                         uns_exon_number1 = unspliced.iloc[0]['exon number']
                         uns_exon_number2 = unspliced.iloc[0]['next exon number']
-                        unspliced_result.append([[uns_exon_1, uns_exon_2], [uns_exon_number1, uns_exon_number2]])
+                        uns_result.append([[uns_exon_1, uns_exon_2], [uns_exon_number1, uns_exon_number2]])
                         status.append("U")
                         if 'N' in cigar:
                             status.append('S')
@@ -71,7 +71,7 @@ def categorize_intervals(chrom, read_start, read_end, gene_id,forward_exons_df):
                 #for i in range(len(ambiguous)):            
                 amb_exon_name = ambiguous.iloc[0]['transcript']
                 amb_exon_number = ambiguous.iloc[0]['exon number']
-                ambiguous_result.append([amb_exon_name, amb_exon_number])
+                amb_result.append([amb_exon_name, amb_exon_number])
                 status.clear()
                 status.append('A')
             if 'N' in cigar:
@@ -86,7 +86,7 @@ def categorize_intervals(chrom, read_start, read_end, gene_id,forward_exons_df):
                 utr_5_exon_number = utr_5.iloc[0]['exon number']
                 min_dist_5 = min(abs(utr_5['first exon start'] - read_end).min(), abs(utr_5['last exon end'] - read_start).min())
                 dist_to_gene_start = utr_5.iloc[0]['distance to gene start']
-                if min_dist_5 > (1000+dist_to_gene_start): # define a better cuttoff point for the 5' UTR
+                if min_dist_5 > (1000+dist_to_gene_start):
                     status.append("None")
                 else:
                     utr_5_result.append([utr_5_exon_name, utr_5_exon_number])
@@ -115,11 +115,11 @@ def categorize_intervals(chrom, read_start, read_end, gene_id,forward_exons_df):
                 status.clear()
                 status.append('S')
 
-    return [chrom, (read_start, read_end), reads, length_of_read, gene_id, ambiguous_result, intronic_result, unspliced_result, spliced_result,utr_3_result,utr_5_result, status]
+    return [chrom, (read_start, read_end), reads, length_of_read, gene_id, amb_result, intr_result, uns_result, spl_result,utr_3_result,utr_5_result, status]
 
-folder_path = '/path/sc_mb_assigned'
+folder_path = '/path/sc_mb'
 file_list = os.listdir(folder_path)
-output_folder = '/path/sc_mb_results'
+output_folder = '/path/sc_mh_results'
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 for i, file in enumerate(file_list):
@@ -128,7 +128,7 @@ for i, file in enumerate(file_list):
 
     file_path = os.path.join(folder_path, file)
     within_df = pd.read_csv(file_path)
-    forward_exons_df = pd.read_csv('path/m_forward_sort_ex.csv')
+    forward_exons_df = pd.read_csv('/path/m_forward_sort_ex.csv')
 
     for index, read_interval_row in within_df.iterrows():
         chrom = read_interval_row['chromosome']
@@ -139,10 +139,8 @@ for i, file in enumerate(file_list):
         cigar = read_interval_row['cigar string']
         length_of_read = read_interval_row['length of read']
 
-        result_data.append(categorize_intervals(chrom, read_start, read_end, gene_id,forward_exons_df))
+        result_data.append(categorize_intervals(chrom, read_start, read_end, gene_id,cigar, reads, length_of_read,forward_exons_df))
 
     result_df = pd.DataFrame(result_data, columns=result_columns)
-    output_file_path = os.path.join(output_folder, f'/path/sc_mb_results/results_{i}.csv')
+    output_file_path = os.path.join(output_folder, f'/path/sc_mh_results/results_{i}.csv')
     result_df.to_csv(output_file_path, index=False)
-
-        
