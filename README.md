@@ -46,6 +46,7 @@ This is what the first few rows of the exons dataset would look like:
 We have the next exon information for every exon on the genome annotation. It is sorted by chromosome, gene_id, transcript and exon number (in that same order) to accurately have the next exon information on the next columns. The genes dataframe would only have the columns; ‘chromosome’, ‘feature’, ‘gene_id’ and ‘strand’.
 
 #### **Within genes**
+code: [within_genes.py](within_genes.py)
 Interestingly, not all of the reads fall within a gene. Most of the reads are either very close to the start or end of a specific gene. That’s why I decided to assign gene id’s to the reads before assigning them a splicing category. If a read was found within a gene, it would output the name of the gene id to another column; if not, it would return nothing. 
 | chromosome	| start | end	| reads	| length of read | cigar string | gene_id |
 | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- |
@@ -58,6 +59,7 @@ Interestingly, not all of the reads fall within a gene. Most of the reads are ei
 
 ### Categorization of the reads
 #### **Within exons**
+code: [within_exons.py](within_exons.py)
 This is where it got tricky. Genes can have multiple transcripts with different splicing locations and different amounts of exons. These categories were the most generalized for all of the cases:
 
 1. Ambiguous within an exon: When the read is entirely within an exon, it is ambiguous because we do not know whether the read came from a spliced or an unspliced RNA molecule.
@@ -99,9 +101,91 @@ between_exons = same_exon_number[(same_exon_number['end'] < read_start) & (same_
           status.append("I")
 ```
    
-3. 
+3. Untranslated regions (UTRs): When a read is not found within a gene but it is relatively close to the gene start (5'UTR) or to the gene end (3'UTR). For this project, the cuttoff point for the 5'UTR is 1000 bases long and the 3'UTR should be 3.6 times larger than the 5'UTR. However, I didn't specify the 3'UTR to have a cuttoff point because it is much less annotated than the 5'UTR.
+   
+<p align="center">
+  <img src="utr.jpg" alt="Image Alt Text" width="400">
+</p>
 
+Code snippet:
+
+```python
+
+else:
+  same_chrom = forward_exons_df[(forward_exons_df['chromosome'] == chrom)]
+  if not same_chrom.empty:
+      utr_5 = same_chrom[(same_chrom['first exon start'] >= read_end)]
+      if not utr_5.empty:
+          utr_5_exon_name = utr_5.iloc[0]['transcript']
+          utr_5_exon_number = utr_5.iloc[0]['exon number']
+          min_dist_5 = min(abs(utr_5['first exon start'] - read_end).min(), abs(utr_5['last exon end'] - read_start).min())
+          dist_to_gene_start = utr_5.iloc[0]['distance to gene start']
+          if min_dist_5 > (1000+dist_to_gene_start): # define a better cuttoff point for the 5' UTR
+              status.append("None")
+          else:
+              utr_5_result.append([utr_5_exon_name, utr_5_exon_number])
+              utr_5_result.append(f"MinDist5:{min_dist_5}")
+              status.append("5T")
+      else:
+          min_dist_5 = float('inf')
+      utr_3 = same_chrom[(same_chrom['last exon end'] <= read_start)]
+      if not utr_3.empty:
+          utr_3_exon_name = utr_3.iloc[0]['transcript']
+          utr_3_exon_number = utr_3.iloc[0]['exon number']
+          min_dist_3 = min(abs(utr_3['first exon start'] - read_start).min(), abs(utr_3['last exon end'] - read_start).min())
+          utr_3_result.append([utr_3_exon_name, utr_3_exon_number])
+          utr_3_result.append(f"MinDist3:{min_dist_3}")
+          status.append("3T")
+          if "None" in status:
+              status.clear()
+              status.append("3T")
+          elif "5T" in status:
+              utr_3_result.clear()
+              status.clear()
+              status.append("5T")
+```
+4. Spliced: When the read would start in one exon and end in another one. These reads would often be longer than the standard 10-20 bases because during the alignment they skip certain regions where the bases do not match. If the skipped regions where a large chunk, the cigar string would report an 'N' character.
+<p align="center">
+  <img src="spliced.jpg" alt="Image Alt Text" width="400">
+</p>
+
+Code snippet:
+``` python
+spliced = same_exon_number[(same_exon['start'] <= read_start) & (same_exon_number['end'] >= read_start) & (same_exon_number['next exon start'] <= read_end) & (same_exon_number['next exon end'] >= read_end) | (same_exon['start'] <= read_start) & (same_exon_number['end'] >= read_start) & (same_exon_number['next exon start'] <= read_end) & (same_exon_number['next exon end'] <= read_end)]
+  if not spliced.empty: # For short reads
+      #for i in range(len(spliced)):
+      spl_1 = spliced.iloc[0]['transcript']
+      spl_2 = spliced.iloc[0]['next transcript']
+      spl_number_1 = spliced.iloc[0]['exon number']
+      spl_number_2 = spliced.iloc[0]['next exon number']
+      spliced_result.append([[spl_1, spl_2], [spl_number_1, spl_number_2]])
+      status.append("S")
+if 'N' in cigar: # For long reads
+   status.clear()
+   status.append("S")
+```
+   
+6. Unspliced: When the read starts in an exon and ends in an intron or vice versa.
+<p align="center">
+  <img src="unpliced.jpg" alt="Image Alt Text" width="400">
+</p>
+
+```python
+unspliced = between_exons[(between_exons['next exon start'] < read_end) & (between_exons['next exon end'] > read_end)]
+   if not unspliced.empty:
+       #for i in range(len(unspliced)):
+       uns_exon_1 = unspliced.iloc[0]['transcript']
+       uns_exon_2 = unspliced.iloc[0]['next transcript']
+       uns_exon_number1 = unspliced.iloc[0]['exon number']
+       uns_exon_number2 = unspliced.iloc[0]['next exon number']
+       unspliced_result.append([[uns_exon_1, uns_exon_2], [uns_exon_number1, uns_exon_number2]])
+       status.append("U")
+       if 'N' in cigar:
+           status.append('S')
+```
 
 ### Results
+
+
 
 ### Future work
