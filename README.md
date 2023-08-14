@@ -57,7 +57,7 @@ Interestingly, not all of the reads fall within a gene. Most of the reads are ei
 | chr1 | 10881326 | 10881340 | 2	| 14 | 14S14M | |
 
 ### Categorization of the reads
-
+![RNA](Screenshot 2023-08-14 123116.jpg)
 #### **Within exons**
 This is where it got tricky. Genes can have multiple transcripts with different splicing locations and different amounts of 
 
