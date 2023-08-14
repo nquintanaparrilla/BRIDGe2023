@@ -17,8 +17,9 @@ Datasets downloaded from 10x Genomics Resources:
 
 STAR aligner was used to create a genome index with ENCODE’s latest basic primary assembly fasta sequence and basic primary genome annotation of the common mouse and map the reads with very few parameters. The alignment process is important to procure a BAM file, and with samtools, create a BAI file (bam file index). 
 I used [genome_index.sh](genome_index.sh) for the genome index and [mapping.sh](mapping.sh) for the quantification of the reads. 
-#### Filtering
+#### **Filtering**
 1. Reads
+   
 The reads were filtered by flag to determine which strand of the genome annotation they correspond to. The information we have from the read is limited to the chromosome, the strand, the cigar string, the start and end of the read, and the sequence. For now, we are choosing to ignore the sequence as it is not relevant right now. This is what the first few rows of the dataset would look like after it was filtered:
 
 | chromosome	| start | end	| reads	| length of read | cigar string |
@@ -28,6 +29,23 @@ The reads were filtered by flag to determine which strand of the genome annotati
 | chr1	| 3056321	| 3056332	| 8	| 11	| 11M17S
 | chr1	| 3064598	| 3064610	| 2	| 12	| 16S12M
 
+2. Genes and exons
+
+The genes and exons were filtered by strand orientation and divided into forward and reverse genes and exons. 
+This is what the first few rows of the exons dataset would look like:
+
+| Unnamed: 0	| chromosome	| feature	| gene_id	| exon number	| transcript	| start	| end	| strand	| length of exon	| next exon number	| next transcript	| next exon start	| next exon end	| last exon number | first exon start	| last exon end	| distance to gene start	| distance to gene end |
+| ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- |
+| 537264	| GL456210.1	| exon	| ENSMUSG00000079192.3	| 1	| ENSMUST00000111364	| 123791	| 123905	| +	| 114	| 2	| ENSMUST00000111364	| 124787	| 124928	| 2	| 123791	| 124928	| 0	| 0 |
+| 537265	| GL456210.1	| exon	| ENSMUSG00000079192.3	| 2	| ENSMUST00000111364	| 124787	| 124928	| +	| 141	| |	|	|	|	2	| 123791	| 124928	| 0	| 0 |
+| 537269	| GL456210.1	| exon	| ENSMUSG00000094799.2	| 1	| ENSMUST00000115928	| 147791	| 147938	| +	| 147	| 2	| ENSMUST00000115928	| 149488	| 149707	| 2	| 147791	| 149707	| 0	| 0 |
+| 537270	| GL456210.1	| exon	| ENSMUSG00000094799.2	| 2	| ENSMUST00000115928	| 149488	| 149707	| +	| 219	|	|	|	|	| 2	| 147791	| 149707	| 0	| 0 |
+| 537278	| GL456211.1	| exon	| ENSMUSG00000079190.4	| 1	| ENSMUST00000111360	| 167445	| 167988	| +	| 543	| 2	| ENSMUST00000111360	| 175871	| 176034	| 7	| 167445	| 196478	| 0	| 0 |
+| 537279	| GL456211.1	| exon	| ENSMUSG00000079190.4	| 2	| ENSMUST00000111360	| 175871	| 176034	| +	| 163	| 3	| ENSMUST00000111360	| 176916	| 177088	| 7	| 167445	| 196478	| 0	| 0 |
+
+ 
+We have the next exon information for every exon on the genome annotation. It is sorted by chromosome, gene_id, transcript and exon number (in that same order) to accurately have the next exon information on the next columns. 
+The genes dataframe would only have the columns; ‘chromosome’, ‘feature’, ‘gene_id’ and ‘strand’.
 
 
 
