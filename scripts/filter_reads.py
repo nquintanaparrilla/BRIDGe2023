@@ -28,7 +28,7 @@ def main(bamfile_path):
         'cigar string': [],
         'length of read': []  
     }
-
+    
     for read in bamfile.fetch():
         reference, start, end, flag, cigar, length_of_read = get_read_location_info(read)
         data['reference'].append(reference)
