@@ -20,7 +20,7 @@ def middle_exons(forward_exons_df, chrom, read_start, read_end):
     intronic = same_chrom[(same_chrom['end'] < read_start)  & (same_chrom['next exon start'] > read_start) & (same_chrom['next exon start'] > read_end)]
     if not intronic.empty:
         row = intronic.iloc[0]
-        return row['transcript'], row['exon number'], row['next exon number'], 'I'
+        return row['transcript'], row['exon number'], row['next exon number'], 'U'
     ambiguous = ambiguous = same_chrom[(same_chrom['start'] <= read_start) & (same_chrom['end'] >= read_end)]
     if not ambiguous.empty:
         row = ambiguous.iloc[0]
