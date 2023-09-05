@@ -2,25 +2,25 @@
 
 import pandas as pd
 import os
-def one_exon(forward_exons_df, chrom, read_start, read_end): # genes with one exon
+def one_exon(forward_exons_df, chrom, read_start, read_end): # check for genes with one exon
     same_chrom = forward_exons_df[(forward_exons_df['chromosome'] == chrom) & (forward_exons_df['exon number'] == 1) & (forward_exons_df['last exon number']) == 1]
     ambiguous = same_chrom[(same_chrom['start'] <= read_start) & (same_chrom['end'] >= read_end)]
     if not ambiguous.empty:
         row = ambiguous.iloc[0]
-        return row['transcript'], 'A'
+        return row['transcript'], 'A' # category for reads entirely within an exon
     unspliced = same_chrom[(same_chrom['start'] <= read_start) & (same_chrom['end'] >= read_start) & (same_chrom['end'] < read_end) |
                            (same_chrom['start'] > read_start) & (same_chrom['start'] <= read_end) & (same_chrom['end'] >= read_end)]
     if not unspliced.empty:
         row = unspliced.iloc[0]
-        return row['transcript'], 'U'
+        return row['transcript'], 'U' #category for reads that start or end in an exon
     return None, None
 
-def middle_exons(forward_exons_df, chrom, read_start, read_end):
+def middle_exons(forward_exons_df, chrom, read_start, read_end): # check for genes with multiple exons
     same_chrom = forward_exons_df[(forward_exons_df['chromosome'] == chrom) & (forward_exons_df['exon number'] < forward_exons_df['next exon number']) & (forward_exons_df['last exon number'] != 1)]
     intronic = same_chrom[(same_chrom['end'] < read_start)  & (same_chrom['next exon start'] > read_start) & (same_chrom['next exon start'] > read_end)]
     if not intronic.empty:
         row = intronic.iloc[0]
-        return row['transcript'], row['exon number'], row['next exon number'], 'U'
+        return row['transcript'], row['exon number'], row['next exon number'], 'U' # category for unspliced reads with intronic nature
     ambiguous = ambiguous = same_chrom[(same_chrom['start'] <= read_start) & (same_chrom['end'] >= read_end)]
     if not ambiguous.empty:
         row = ambiguous.iloc[0]
@@ -42,13 +42,13 @@ def middle_exons(forward_exons_df, chrom, read_start, read_end):
     
     return None, None, None, None
 
-def spliced(cigar):
+def spliced(cigar): # check for spliced reads using the cigar string provided by the bam file
     status = 'S'
     if 'N' in cigar:
         return status
     return None
 
-def utr_5(forward_exons_df, chrom, read_end):
+def utr_5(forward_exons_df, chrom, read_end): # checking for the minimum distance to the nearest 5'UTR
     same_chrom = forward_exons_df[(forward_exons_df['chromosome'] == chrom)]
     first_exon = same_chrom[(same_chrom['exon number'] == 1) & (same_chrom['start'] > read_end)]
     if not first_exon.empty:
@@ -66,7 +66,7 @@ def utr_5(forward_exons_df, chrom, read_end):
             else:
                 return min_dist_5, f"MinDist5:{min_dist_5}", 'F5'
     return None, None, None
-def utr_3(forward_exons_df, chrom, read_start):
+def utr_3(forward_exons_df, chrom, read_start): #checking for the minimum distance to the nearest 3'UTR
     same_chrom = forward_exons_df[(forward_exons_df['chromosome'] == chrom)]
     last_exon = same_chrom[(same_chrom['exon number'] == same_chrom['last exon number']) & (same_chrom['end'] < read_start)]
     if not last_exon.empty:
@@ -85,7 +85,7 @@ def utr_3(forward_exons_df, chrom, read_start):
                 return min_dist_3, f"MinDist3:{min_dist_3}", 'F3'
     return None, None, None
 
-def closest_utr(min_dist_3, min_dist_5, utr_distance_3, utr_distance_5, utr_status_5, utr_status_3):
+def closest_utr(min_dist_3, min_dist_5, utr_distance_3, utr_distance_5, utr_status_5, utr_status_3): # making the category choose the closest UTR
     min_dist_3 = min_dist_3 or float('inf')
     min_dist_5 = min_dist_5 or float('inf')
     if min_dist_3 < min_dist_5:
@@ -101,7 +101,7 @@ def categorize_intervals(chrom, read_start, read_end, cigar, reads, length_of_re
 
     status = []
     result = []
-
+# assign a letter for each status 
     if one_exon_status:
         result.append(transcript0)
         status.append(one_exon_status)
@@ -115,7 +115,7 @@ def categorize_intervals(chrom, read_start, read_end, cigar, reads, length_of_re
         status.clear()
         status.append(spliced_status)
         #print(read_start, 'is spliced')  
-    else:
+    else: #condition for when the reads was not found within any exons
         if utr_status_5:
             result.append(utr_distance_5)
             status.append(utr_status_5)
